@@ -3,5 +3,5 @@ from core.views import GenerateThumbnailView
 
 urlpatterns = [
 
-    url(r'^$', GenerateThumbnailView.as_view(), name='thumbnail'),
+    url(r'^', GenerateThumbnailView.as_view(), name='thumbnail'),
    ]
