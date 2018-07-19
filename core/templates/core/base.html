@@ -25,7 +25,12 @@
                     {% endfor %}
                     <button type="submit" class="btn btn-primary">Upload</button>
 
-                    {{ image }}
+                    {% for document in documents %}
+                        <img src="{{ document.document.url }}">
+                        <img src="{{ document.thumbnail.url }}">
+                    {% empty %}
+                        <p>No image present.</p>
+                    {% endfor %}
                 </form>
             </div>
         </div>
