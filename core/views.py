@@ -14,6 +14,8 @@ from io import BytesIO, StringIO
 class GenerateThumbnailView(View):
     form_class = DocumentForm
     template_name = 'core/base.html'
+    # VIDEO_TYPES = ['.avi','.AVI','.wmv','.WMV','.mpg','.MPG','.mpeg','.MPEG']
+    # AUDIO_TYPES = ['.mp3','.MP3','.mpa','.MPA','.flac','.FLAC','.ogg','.OGG','.wav','.WAV','.wma','.WMA']
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
@@ -22,12 +24,21 @@ class GenerateThumbnailView(View):
     def post(self,request, *args, **kwargs):
             form = self.form_class(request.POST, request.FILES)
             if form.is_valid():
-                print(form)
-                # thumb_name, thumb_extension = os.path.splitext(form.file.name)
-                print(dict(form.files)['files'][0])
+                type = ((dict(request.POST))['type'][0])
                 form1 = form.save(commit=False)
-                form1.document = dict(form.files)['files'][0]
-                form1.uploaded_at = datetime.datetime.now()
+                print('here')
+                if type == 'image':
+                    form1.document = dict(form.files)['files'][0]
+                    form1.uploaded_at = datetime.datetime.now()
+                elif type == 'audio':
+                    print("1")
+                    print(dict(form.files)['files'][0])
+                    form1.document = Image.open('core/static/images/audio.jpg')
+                    print(form1.document)
+                    form1.uploaded_at = datetime.datetime.now()
+                elif type == 'text':
+                    form1.document = Image.open('core/static/images/text.jpg')
+                    form1.uploaded_at = datetime.datetime.now()
                 form1.save()
                 documents = Document.objects.all()
                 return render(self.request, self.template_name, {'form': form, 'documents':documents})

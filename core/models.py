@@ -2,6 +2,8 @@ from django.db import models
 import uuid
 import os
 from PIL import Image, ImageFilter, ImageOps
+# from pytesser import *
+from pytesseract import image_to_string
 from django.core.files.images import ImageFile
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -26,23 +28,32 @@ class Document(models.Model):
         super(Document, self).save(*args, **kwargs)
 
     def make_thumbnail(self):
-
-        image = Image.open(self.document)
-        image.thumbnail((200,200), Image.ANTIALIAS)
-
-        thumb_name, thumb_extension = os.path.splitext(self.document.name)
-        thumb_extension = thumb_extension.lower()
-
-        thumb_filename = thumb_name + '_thumb' + thumb_extension
-
-        if thumb_extension in ['.jpg', '.jpeg']:
-            FTYPE = 'JPEG'
-        elif thumb_extension == '.gif':
-            FTYPE = 'GIF'
-        elif thumb_extension == '.png':
+        if self.type == 'audio':
+            image = Image.open('core/static/images/audio.jpg')
             FTYPE = 'PNG'
+            thumb_filename = (str(self.files).split("."))[0]+"_thumb"+'.png'
+            print("file",self.files)
+            print(thumb_filename)
+        if self.type == 'text':
+            image = Image.open('core/static/images/text.jpg')
+            FTYPE = 'PNG'
+            thumb_filename = (str(self.files).split("."))[0]+"_thumb"+'.png'
         else:
-            return False    # Unrecognized file type
+            image = Image.open(self.document)
+            thumb_name, thumb_extension = os.path.splitext(self.document.name)
+            thumb_extension = thumb_extension.lower()
+
+            thumb_filename = thumb_name + '_thumb' + thumb_extension
+
+            if thumb_extension in ['.jpg', '.jpeg']:
+                FTYPE = 'JPEG'
+            elif thumb_extension == '.gif':
+                FTYPE = 'GIF'
+            elif thumb_extension == '.png':
+                FTYPE = 'PNG'
+            else:
+                return False    # Unrecognized file type
+        image.thumbnail((200,200), Image.ANTIALIAS)
 
         # Save thumbnail to in-memory file as StringIO
         temp_thumb = BytesIO()
