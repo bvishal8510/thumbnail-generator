@@ -10,12 +10,13 @@ import os
 from django.core.files.uploadedfile import SimpleUploadedFile
 import datetime
 from io import BytesIO, StringIO
+import cv2
+import numpy as np
+
 
 class GenerateThumbnailView(View):
     form_class = DocumentForm
     template_name = 'core/base.html'
-    # VIDEO_TYPES = ['.avi','.AVI','.wmv','.WMV','.mpg','.MPG','.mpeg','.MPEG']
-    # AUDIO_TYPES = ['.mp3','.MP3','.mpa','.MPA','.flac','.FLAC','.ogg','.OGG','.wav','.WAV','.wma','.WMA']
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
@@ -26,18 +27,25 @@ class GenerateThumbnailView(View):
             if form.is_valid():
                 type = ((dict(request.POST))['type'][0])
                 form1 = form.save(commit=False)
-                print('here')
                 if type == 'image':
                     form1.document = dict(form.files)['files'][0]
                     form1.uploaded_at = datetime.datetime.now()
                 elif type == 'audio':
-                    print("1")
-                    print(dict(form.files)['files'][0])
                     form1.document = Image.open('core/static/images/audio.jpg')
-                    print(form1.document)
                     form1.uploaded_at = datetime.datetime.now()
                 elif type == 'text':
                     form1.document = Image.open('core/static/images/text.jpg')
+                    form1.uploaded_at = datetime.datetime.now()
+                elif type == 'video':
+                    print("file",list(dict(form.files)['files'][0]))
+                    cap = cv2.VideoCapture(str(dict(form.files)['files'][0]))
+                    name = str(dict(form.files)['files'][0]) + "thumb" + ".jpg"
+                    count = 0
+                    while count < 14:
+                      success, image = cap.read()
+                      image1 = cv2.imwrite(name, image)     # save frame as JPEG file
+                      count += 1
+                    form1.document = image
                     form1.uploaded_at = datetime.datetime.now()
                 form1.save()
                 documents = Document.objects.all()
