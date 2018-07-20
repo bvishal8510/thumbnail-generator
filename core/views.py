@@ -5,10 +5,11 @@ from core.models import Document
 from core.forms import DocumentForm
 from django.core.files.images import ImageFile
 from django.views import View
-from django.core.files import File, ImageClient
+from django.core.files import File
 import os
+from django.core.files.uploadedfile import SimpleUploadedFile
 import datetime
-from io import BytesIO
+from io import BytesIO, StringIO
 
 class GenerateThumbnailView(View):
     form_class = DocumentForm
@@ -21,22 +22,15 @@ class GenerateThumbnailView(View):
     def post(self,request, *args, **kwargs):
             form = self.form_class(request.POST, request.FILES)
             if form.is_valid():
-                data = form.cleaned_data['document']
-                print("data",data)
-                instance = form.save(commit=False)
-                filename = "thumb_"+str(instance.document)
-                im = Image.open(instance.document)
-                im.thumbnail((200, 200), Image.ANTIALIAS)
-                instance.uploaded_at = datetime.datetime.now()
-                print("Time",instance.uploaded_at)
-                im.save(filename, quality=60)
-                image_file = ImageFile(im)
-                instance.thumbnail = ImageClient(image=image_file)
-                print("instance1",instance.thumbnail)
-                instance.save()
-                print("instance2",instance.thumbnail)
+                print(form)
+                # thumb_name, thumb_extension = os.path.splitext(form.file.name)
+                print(dict(form.files)['files'][0])
+                form1 = form.save(commit=False)
+                form1.document = dict(form.files)['files'][0]
+                form1.uploaded_at = datetime.datetime.now()
+                form1.save()
                 documents = Document.objects.all()
-                return render(self.request, self.template_name, {'form': form,'image':im, 'documents':documents})
+                return render(self.request, self.template_name, {'form': form, 'documents':documents})
             else:
                 print("2")
                 messages.error(self.request, "Data not valid.")
@@ -45,7 +39,27 @@ class GenerateThumbnailView(View):
 
 
 
-
+# data = form.cleaned_data['document']
+                # print("data",data)
+                # instance = form.save(commit=False)
+                # filename = "thumb_"+str(instance.document)
+                # im = Image.open(instance.document)
+                # # StringIO(instance.document.read())
+                # im.thumbnail((200, 200), Image.ANTIALIAS)
+                # instance.uploaded_at = datetime.datetime.now()
+                # print("Time",instance.uploaded_at)
+                # im.save(filename, quality=60)
+                # # image_file = ImageFile(im)
+                # # instance.thumbnail = ImageClient(image=image_file)
+                # # temp_handle = StringIO()
+                # # im.save(temp_handle, PIL_TYPE)
+                # # temp_handle.seek(0)
+                # DJANGO_TYPE = 'image/jpeg'
+                # suf = SimpleUploadedFile(os.path.split(instance.document.name)[-1],
+                # im, content_type=DJANGO_TYPE)
+                # instance.thumbnail = suf
+                # print("instance1",instance.thumbnail)
+                # instance.save()
 
 # thumbnail = Image.open((dict(request.FILES))['document'][0]).thumbnail((200,200))
 #                 .save("thumbnail_%s_%s" % (image, "_".join((200,200))))
